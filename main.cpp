@@ -4,38 +4,10 @@
  */
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 
 using namespace std;
 
-void printThem(float a[][3]);
-void matrixPower(float B[3][3], int size, float BPow[3][3]);
-void multiplyThem(float invA[3][3], float I[3][3], float B[3][3], float BPow[3][3]);
-
-void matrixPower(float B[3][3], int size, float BPow[3][3])
-{
-    int x = 0;
-
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            BPow[i][j] = 0;
-        }
-    }
-
-    while (x < size)
-    {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 3; k++) {
-                    BPow[i][j] += B[i][k] * B[k][j];
-                }
-            }
-        }
-        x++;
-    }
-}
-
-void printThem(float a[3][3])
+void printThem(double a[3][3], double b[3][3])
 {
     for (int i = 0; i < 3; i++)
     {
@@ -45,60 +17,94 @@ void printThem(float a[3][3])
             cout << fixed;
             cout << setw(7) << a[i][j];
         }
-        cout << "\t";
-
-    }
-}
-
-void multiplyThem(float invA[3][3], float I[3][3], float B[3][3], float BPow[3][3])
-{
-    // the first part of the equation A^-1 = (I + B) + ...
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            invA[i][j] = I[i][j] + B[i][j];
-        }
-    }
-
-    // + B^2 + B^3 and so on.
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                invA[i][j] = invA[i][j] + BPow[i][j];
-            }
-        }
-    }
-
-
-    /*for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
+        cout << "\t ";
+        for(int j = 0; j < 3; j++)
         {
-            B[i][j] = 0;
-            for (int k = 0; k < 3; k++)
-                B[i][j] = B[i][j] + A[i][k] * I[k][j];
-        }*/
+            cout << fixed;
+            cout << setw(7) << b[i][j];
+        }
+    }
+}
 
+void inverseEq(double x[3][3], double y[3][3], double temp[3][3])
+{
+    //temp = temp
+    // x = pB
+    // y = B
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            temp[i][j] = 0;
+            for (int k = 0; k < 3; k++)
+                temp[i][j] = temp[i][j] + x[i][k] * y[k][j];
+        }
+    }
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            x[i][j] = 0;
+            x[i][j] = temp[i][j];
+        }
+    }
 }
 
 
+void subtractThem(double x[3][3], double y[3][3], double z[3][3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j= 0; j < 3; j++)
+        {
+            z[i][j] = x[i][j] - y[i][j];
+        }
+    }
+}
+
+void addThem(double x[3][3], double z[3][3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j= 0; j < 3; j++)
+        {
+            z[i][j] = z[i][j] + x[i][j];
+        }
+    }
+}
+
+void multiplyThem(double x[3][3], double y[3][3], double z[3][3])
+{
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            z[i][j] = 0;
+            for (int k = 0; k < 3; k++)
+                z[i][j] = z[i][j] + x[i][k] * y[k][j];
+        }
+    }
+}
 
 int main() {
 
-    float A[3][3] = {1./2, 1., 0., 0., 2./3, 0., -1./2, -1., 2./3};
-    float I[3][3] = {1.  , 0., 0., 0.,   1., 0.,    0.,  0.,   1.};
-    float B[3][3], invA[3][3], BPow[3][3];
+    double A[3][3] = {{1./2, 1.00, 0.00}, {0.00, 2./3, 0.00}, {-1./2, -1.00, 2./3}};
+    double I[3][3] = {{1.00, 0.00, 0.00}, {0.00, 1.00, 0.00}, {0.00, 0.00, 1.00}};
+    double B[3][3], invA[3][3], pB[3][3], temp[3][3], prod[3][3];
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            B[i][j] = I[i][j] - A[i][j];
-        }
+    //Gets B Value.
+    subtractThem(I, A, B);
+    subtractThem(I, A, pB);
+
+    //first part of the equation
+    addThem(I, invA);
+    addThem(B, invA);
+
+    //rest of equation
+    for (int i = 0; i < 20; i++) {
+        inverseEq(pB, B, temp);
+        addThem(pB, invA);
     }
 
-    cout << "\n\t\t\t\t      invA";
+    multiplyThem(invA, A, prod);
+    cout << "\n\t\t\t\t      invA\t\t\t\t    invA  *  A";
     cout << setprecision(2);
-    multiplyThem(invA, I, B, BPow);
-    printThem(invA);
-
-    cout << "\n\n";
+    printThem(invA, prod);
 
     return 0;
 }
